@@ -20,4 +20,27 @@ UserSchema.methods.setPassword = function(password){
     this.hash = crypto.pbkdf2Sync(password, this.salt, 10000, 512, 'sha512').toString('hex');
 }
 
+UserSchema.methods.generateJWT = function(){
+    return jwt.sign({id: this._id,email: this.email},
+        process.env.TOKEN_SECRET,
+        {
+            expiresIn:"72h"
+        })
+}
+
+UserSchema.methods.toJSON = function(){
+    return {
+        email: this.email,
+        image: this.image
+    }
+}
+
+UserSchema.methods.toAuthJSON = function(){
+    return {
+        token:this.generateJWT(),
+        email:this.email,
+        image:this.image
+    }
+}
+
 module.exports = mongoose.model("User",UserSchema);
