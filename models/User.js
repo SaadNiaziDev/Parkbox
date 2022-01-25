@@ -4,10 +4,10 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
 const UserSchema= Schema({
-email:string,
-salt:string,
-hash:string,
-image:string,
+email:{type: 'string',lowercase: true,required: true},
+salt:String,
+hash:String,
+image:String,
 });
 
 UserSchema.methods.validPassword = function() {
