@@ -3,7 +3,7 @@ const Schema = mongoose.Schema();
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
-const UserSchema= Schema({
+const UserSchema= mongoose.Schema({
 email:{type: 'string',lowercase: true,required: true},
 salt:String,
 hash:String,
@@ -22,7 +22,7 @@ UserSchema.methods.setPassword = function(password){
 
 UserSchema.methods.generateJWT = function(){
     return jwt.sign({id: this._id,email: this.email},
-        process.env.TOKEN_SECRET,
+        process.env.TOKON_SECRET,
         {
             expiresIn:"72h"
         })

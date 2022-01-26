@@ -1,16 +1,17 @@
 const User = require("../models/User");
 const jsonwebtoken = require("jsonwebtoken");
-const {BadRequestResponse, InternalServerErrorResponse } =  require('express-http-response');
+const {InternalServerErrorResponse, UnauthorizedResponse } =  require('express-http-response');
+let BadRequestResponse = require('express-http-response').BadRequestResponse;
 const {  validationResult } = require('express-validator')
 
 const isToken = function (req, res, next) {
     var token = req.headers.authorization.split(" ");
     if (typeof token[1] === "undefined" || typeof token[1] === null) {
-      res.status(401).send({ message: "Please login first to continue further!" });
+      throw new UnauthorizedResponse("Please login first to continue further!",403);
     } else {
       jsonwebtoken.verify(token[1], "shhhhh", (err, data) => {
         if (err) {
-          res.status(401).send({ message: "Please login first to continue further!" });
+          throw new UnauthorizedResponse("Please login first to continue further!",403);
         } else {
           req.user = data;
           next();
@@ -36,11 +37,19 @@ const isEmail = function (req, res, next) {
             next(new InternalServerErrorResponse ())
         }
         else if(count>0){
-            next(new BadRequestResponse ('Email already exist!',422))
+            next(new BadRequestResponse ('Email already exist!',422.0))
         }else{
             next();
         }
     })
 }
 
-module.exports = {validate,isToken,isEmail}
+const isSame = function (req, res, next) {
+  if(req.body.password !== req.body.rePassword){
+    next(new BadRequestResponse("Password mismatch"));
+  }else{
+    next();
+  }
+}
+
+module.exports = {validate,isToken,isEmail,isSame}

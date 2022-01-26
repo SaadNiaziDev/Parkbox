@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema();
 
-const PropertySchema = Schema({
+const PropertySchema = mongoose.Schema({
     category: {type:mongoose.Schema.Types.ObjectId,ref:"Categories"},
     price:String,
     image:String,

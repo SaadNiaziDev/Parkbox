@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema();
 
-const CategorySchema = Schema({
+const CategorySchema = mongoose.Schema({
     isInsulated:Boolean,
     isElectricity:Boolean,
     isAlarm:Boolean,
