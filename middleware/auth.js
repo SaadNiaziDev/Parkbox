@@ -2,7 +2,7 @@ const User = require("../models/User");
 const jsonwebtoken = require("jsonwebtoken");
 const {InternalServerErrorResponse, UnauthorizedResponse } =  require('express-http-response');
 let BadRequestResponse = require('express-http-response').BadRequestResponse;
-const {  validationResult } = require('express-validator')
+const {  validationResult } = require('express-validator');
 
 const isToken = function (req, res, next) {
     var token = req.headers.authorization.split(" ");
@@ -52,4 +52,14 @@ const isSame = function (req, res, next) {
   }
 }
 
-module.exports = {validate,isToken,isEmail,isSame}
+const verifyOtp =function (req, res, next) {
+  User.findOne({email:req.body.email},(err, user)=>{
+    if(user.otp_expires.getTime() > (Date.now())){ 
+      next(new BadRequestResponse("OTP expired"));
+    }else{
+      next();
+    }
+  })
+}
+
+module.exports = {validate,isToken,isEmail,isSame,verifyOtp}
