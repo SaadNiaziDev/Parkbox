@@ -8,15 +8,19 @@ const app = express();
 
 const authRoute = require("./routes");
 
-require("./models/User");
-
 //database connection
 mongoose.connect(
-    process.env.DB_URL,
-    () => {
-      console.log('Connected to MongoDB');
-    }
-  );
+  process.env.DB_URL,
+  () => {
+    console.log('Connected to MongoDB');
+  }
+);
+
+require("./models/User");
+require("./models/Categories");
+require("./models/Properties");
+
+
 
 //middleware
 app.use(express.json());

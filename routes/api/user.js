@@ -96,4 +96,17 @@ router.post("/createAdmin",auth.isToken,auth.isAdmin,(req, res, next)=>{
   }
 });
 
+router.post('/refreshOtp',(req, res, next)=>{
+  User.findOne({email:req.body.email}, (err, user)=>{
+    if(!err && user){
+      console.log('hey');
+      user.generateOTP();
+      user.save();
+     next(new OkResponse("Otp updated successfully!"));
+    }else{
+      next(new BadRequestResponse(err))
+    }
+  })
+})
+
 module.exports = router;

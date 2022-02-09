@@ -3,17 +3,17 @@ const Schema = mongoose.Schema();
 
 const CategorySchema = mongoose.Schema({
     category: String,
-    isInsulated:Boolean,
-    isElectricity:Boolean,
-    isAlarm:Boolean,
-    isSurveillance:Boolean,
-    isWashingArea:Boolean,
-    isBathroom:Boolean,
-    isPaymentOnHeat:Boolean,
-    isPaymentOnWater:Boolean,
-    isSeperateEnterance:Boolean,
-    isSecurityDeposit:Boolean,
-    isPrepaidRent:Boolean,
+    isInsulated:{type:"Boolean",default:"false"},
+    isElectricity:{type:"Boolean",default:"false"},
+    isAlarm:{type:"Boolean",default:"false"},
+    isSurveillance:{type:"Boolean",default:"false"},
+    isWashingArea:{type:"Boolean",default:"false"},
+    isBathroom:{type:"Boolean",default:"false"},
+    isPaymentOnHeat:{type:"Boolean",default:"false"},
+    isPaymentOnWater:{type:"Boolean",default:"false"},
+    isSeperateEnterance:{type:"Boolean",default:"false"},
+    isSecurityDeposit:{type:"Boolean",default:"false"},
+    isPrepaidRent:{type:"Boolean",default:"false"},
 })
 
 module.exports = mongoose.model("Categories",CategorySchema);

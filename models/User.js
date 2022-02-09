@@ -6,6 +6,7 @@ const crypto = require("crypto");
 
 const UserSchema = mongoose.Schema({
   email: { type: "string", lowercase: true, required: true },
+  fullname:String,
   salt: String,
   hash: String,
   image: String,
@@ -46,6 +47,7 @@ UserSchema.methods.generateJWT = function () {
 
 UserSchema.methods.toJSON = function () {
   return {
+    fullname:this.fullname,
     email: this.email,
     image: this.image,
     token: this.generateJWT(),
