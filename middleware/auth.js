@@ -3,8 +3,8 @@ const jsonwebtoken = require("jsonwebtoken");
 const {
   InternalServerErrorResponse,
   UnauthorizedResponse,
+  BadRequestResponse,
 } = require("express-http-response");
-let BadRequestResponse = require("express-http-response").BadRequestResponse;
 const { validationResult } = require("express-validator");
 
 const isToken = function (req, res, next) {
@@ -29,16 +29,6 @@ const isToken = function (req, res, next) {
   }
 };
 
-const validate = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    console.log(req.body);
-    next(new BadRequestResponse("Missing required parameter.", 422.0));
-  } else {
-    next();
-  }
-};
-
 const isEmail = function (req, res, next) {
   User.count({ $and: [{ email: req.body.email }] }, (err, count) => {
     if (err) {
@@ -59,14 +49,11 @@ const isSame = function (req, res, next) {
   }
 };
 
-
 const isAdmin = function (req, res, next) {
   User.findOne({ email: req.user.email }, (err, data) => {
-    console.log(data.role);
     if (data.role === 1) {
       next();
-    } else 
-      next(new BadRequestResponse("You dont have permission to access"));
+    } else next(new BadRequestResponse("You dont have permission to access"));
   });
 };
-module.exports = { validate, isToken, isEmail, isSame, isAdmin };
+module.exports = { isToken, isEmail, isSame, isAdmin };

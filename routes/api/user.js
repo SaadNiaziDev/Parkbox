@@ -1,7 +1,8 @@
 const router = require("express").Router();
 const User = require("../../models/User");
-const passport = require('passport')
-const localStrategy = require('../../middleware/passport') // importing strategy file
+const passport = require("passport");
+const localStrategy = require("../../middleware/passport"); // importing strategy file
+const {validate,registerValidation}=require("../../validation/user")
 const auth = require("../../middleware/auth");
 const {
   OkResponse,
@@ -13,60 +14,71 @@ const {
 passport.use(localStrategy);
 router.use(passport.initialize());
 
-router.post("/register",auth.validate,auth.isEmail, auth.isSame, (req, res, next) => {
-  try {
-    let newUser = new User();
-    User.findOne({ email: req.body.email }, (err, user) => {
-      if (!err && user) {
+router.post(
+  "/register",
+  registerValidation,
+  validate,
+  auth.isEmail,
+  auth.isSame,
+  (req, res, next) => {
+    try {
+      let newUser = new User();
+      User.findOne({ email: req.body.email }, (err, user) => {
+        if (!err && user) {
+          next(
+            new BadRequestResponse(
+              "User already registered with following email.",
+              422.0
+            )
+          );
+        } else {
+          newUser.email = req.body.email.toLowerCase();
+          newUser.fullname = req.body.fullname;
+          newUser.setPassword(req.body.password);
+          newUser.generateOTP();
+          newUser.save().then((result) => {
+            if (!result) {
+              next(new InternalServerErrorResponse("Error saving user", 500.0));
+            } else {
+              next(new OkResponse(result, "Data saved successfully!", 200));
+            }
+          });
+        }
+      });
+    } catch (err) {
+      console.log(err);
+      next(new BadRequestResponse("Something Unknown Happened!.", 422.0));
+    }
+  }
+);
+
+router.post(
+  "/login",
+  passport.authenticate("local", { session: false }),
+  (req, res, next) => {
+    User.findOne({ email: req.user.email }, (err, data) => {
+      if (data.isEmailVerified === true && data.status === "active") {
+        next(new OkResponse(data.toAuthJSON()));
+      } else if (data.isEmailVerified === false) {
+        next(new BadRequestResponse("Please Verify your email first!"));
+      } else if (data.status === "inactive") {
         next(
           new BadRequestResponse(
-            "User already registered with following email.",
-            422.0
+            "Your account has been blocked temporarily due to inactivity."
           )
         );
-      } else{
-        newUser.email = req.body.email.toLowerCase();
-        newUser.fullname = req.body.fullname;
-        newUser.setPassword(req.body.password);
-        newUser.generateOTP();
-        newUser.save().then((result) => {
-          if (!result) {
-            next(new InternalServerErrorResponse("Error saving user", 500.0));
-          } else {
-            next(
-              new OkResponse(
-                result,
-                "Data saved successfully!",
-                200
-              )
-            );
-          }
-        });
+      } else if (data.status === "deleted") {
+        next(
+          new BadRequestResponse(
+            "Your account has been Suspended for lifetime period!"
+          )
+        );
       }
     });
-  } catch (err) {
-    console.log(err);
-    next(new BadRequestResponse("Something Unknown Happened!.", 422.0));
   }
-});
+);
 
-
-
-router.post("/login",passport.authenticate('local',{session: false}), (req, res, next) => {
-  User.findOne({email: req.user.email}, (err, data) => {
-    if(data.isEmailVerified===true && data.status ==="active") {
-      next(new OkResponse(data.toAuthJSON()))
-    }else if(data.isEmailVerified===false) {
-      next(new BadRequestResponse("Please Verify your email first!"))
-    }else if(data.status === "inactive"){
-      next(new BadRequestResponse("Your account has been blocked temporarily due to inactivity."))
-    }else if(data.status === "deleted"){
-      next(new BadRequestResponse("Your account has been Suspended for lifetime period!"))
-    }
-  })
-});
-
-router.post("/createAdmin",auth.isToken,auth.isAdmin,(req, res, next)=>{
+router.post("/createAdmin", auth.isToken, auth.isAdmin, (req, res, next) => {
   try {
     let newUser = new User();
     User.findOne({ email: req.body.email }, (err, user) => {
@@ -77,12 +89,12 @@ router.post("/createAdmin",auth.isToken,auth.isAdmin,(req, res, next)=>{
             422.0
           )
         );
-      } else{
+      } else {
         newUser.email = req.body.email.toLowerCase();
         newUser.fullname = req.body.fullname;
         newUser.setPassword(req.body.password);
         newUser.generateOTP();
-        newUser.role=1;
+        newUser.role = 1;
         newUser.save().then((result) => {
           if (!result) {
             next(new InternalServerErrorResponse("Error saving user", 500.0));
@@ -103,56 +115,60 @@ router.post("/createAdmin",auth.isToken,auth.isAdmin,(req, res, next)=>{
   }
 });
 
-router.post('/verifyEmail',(req, res, next)=>{
-  User.findOne({email:req.body.email}, (err, user)=>{
-    if(!err && user){
-      if((user.otp===req.body.otp) && (user.otp_expires.getTime()>Date.now())){
-        user.otp=null;
-        user.otp_expires=null;
-        user.isEmailVerified=true;
+router.post("/verifyEmail", (req, res, next) => {
+  User.findOne({ email: req.body.email }, (err, user) => {
+    if (!err && user) {
+      if (
+        user.otp === req.body.otp &&
+        user.otp_expires.getTime() > Date.now()
+      ) {
+        user.otp = null;
+        user.otp_expires = null;
+        user.isEmailVerified = true;
         user.save();
         next(new OkResponse("Email is verified"));
-      }else{
+      } else {
         next(new BadRequestResponse("Invalid OTP"));
       }
-    }else{
-      next(new BadRequestResponse(err))
+    } else {
+      next(new BadRequestResponse(err));
     }
-  })
+  });
 });
 
-router.put('/deleteUser',(req, res, next)=>{
-  User.findOne({email:req.body.email},(err, user)=>{
-    if(!err && user){
-      user.status="deleted",
-      user.save();
+router.put("/deleteUser", (req, res, next) => {
+  User.findOne({ email: req.body.email }, (err, user) => {
+    if (!err && user) {
+      (user.status = "deleted"), user.save();
       next(new OkResponse("User deleted successfully"));
-    }else{
+    } else {
       next(new BadRequestResponse("User not found"));
     }
-  })
+  });
 });
 
-router.put('/changeStatus',auth.isToken,auth.isAdmin,(req, res, next)=>{
-    User.findOne({email: req.body.email }, (err, user)=>{
-      if(!err && user){
-        user.status = req.body.status;
-        user.save();
-        next(new OkResponse("Status has been updated"));
-      }else{
-        next(new BadRequestResponse("User not found"))
-      }
-    })
+router.put("/changeStatus", auth.isToken, auth.isAdmin, (req, res, next) => {
+  User.findOne({ email: req.body.email }, (err, user) => {
+    if (!err && user) {
+      user.status = req.body.status;
+      user.save();
+      next(new OkResponse("Status has been updated"));
+    } else {
+      next(new BadRequestResponse("User not found"));
+    }
+  });
 });
 
-router.get('/showAll',auth.isToken,auth.isAdmin,(req, res, next)=>{
-    User.find().populate().then((err,data)=>{
-      if(err){
-          next(err);
-      }else{
-          next(new OkResponse(data));
+router.get("/showAll", auth.isToken, auth.isAdmin, (req, res, next) => {
+  User.find()
+    .populate()
+    .then((err, data) => {
+      if (err) {
+        next(err);
+      } else {
+        next(new OkResponse(data));
       }
-  })
-})
+    });
+});
 
 module.exports = router;
