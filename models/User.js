@@ -6,14 +6,23 @@ const crypto = require("crypto");
 
 const UserSchema = mongoose.Schema({
   email: { type: "string", lowercase: true, required: true },
+  status: { type: "string", lowercase: true, required: true,default: "active"},
   fullname:String,
   salt: String,
   hash: String,
   image: String,
   otp: String,
   otp_expires: Date,
-  isEmailVerified: Boolean,
-  role: { type: Number, enum: [0, 1], require: true, default: 0 },
+  isEmailVerified: {type:"Boolean",default:"false"},
+  role: { 
+    type: Number, 
+    enum: [
+      0, //User
+      1  //Admin
+    ], 
+    required: true, 
+    default: 0 
+  },
 });
 
 UserSchema.methods.validPassword = function (password) {
@@ -32,7 +41,7 @@ UserSchema.methods.setPassword = function (password) {
 
 UserSchema.methods.generateOTP = function () {
   this.otp = Math.floor(Math.random() * 9999 + 1000);
-  this.otp_expires = Date.now() + 6 * 1000 * 60 * 60;
+  this.otp_expires = Date.now() + 1000 * 60 * 60;
 };
 
 UserSchema.methods.generateJWT = function () {
@@ -45,21 +54,24 @@ UserSchema.methods.generateJWT = function () {
   );
 };
 
-UserSchema.methods.toJSON = function () {
+UserSchema.methods.toAuthJSON = function () {
   return {
     fullname:this.fullname,
     email: this.email,
     image: this.image,
+    status: this.status,
     token: this.generateJWT(),
   };
 };
 
-UserSchema.methods.toAuthJSON = function () {
+UserSchema.methods.toJSON = function () {
   return {
     otp: this.otp,
     otp_expires: this.otp_expires,
     email: this.email,
     image: this.image,
+    status: this.status,
+    isEmailVerified: this.isEmailVerified,
   };
 };
 

@@ -59,19 +59,6 @@ const isSame = function (req, res, next) {
   }
 };
 
-const verifyOtp = function (req, res, next) {
-  User.findOne({ email: req.body.email }, (err, user) => {
-    if (user && !err) {
-      if (user.otp_expires.getTime() < Date.now() + 5 * 1000 * 60 * 60) {
-        next(new BadRequestResponse("OTP expired"));
-      } else {
-        next();
-      }
-    } else {
-      next(new BadRequestResponse("INVALID EMAIL"));
-    }
-  });
-};
 
 const isAdmin = function (req, res, next) {
   User.findOne({ email: req.user.email }, (err, data) => {
@@ -82,4 +69,4 @@ const isAdmin = function (req, res, next) {
       next(new BadRequestResponse("You dont have permission to access"));
   });
 };
-module.exports = { validate, isToken, isEmail, isSame, verifyOtp, isAdmin };
+module.exports = { validate, isToken, isEmail, isSame, isAdmin };
