@@ -2,7 +2,14 @@ const router = require("express").Router();
 const User = require("../../models/User");
 const passport = require("passport");
 const localStrategy = require("../../middleware/passport"); // importing strategy file
-const {validate,registerValidation}=require("../../validation/user")
+const {
+  registerValidation,
+  otpValidation,
+  loginValidation,
+  emailValidation,
+  statusValidation,
+  validate,
+} = require("../../validation/user");
 const auth = require("../../middleware/auth");
 const {
   OkResponse,
@@ -23,26 +30,15 @@ router.post(
   (req, res, next) => {
     try {
       let newUser = new User();
-      User.findOne({ email: req.body.email }, (err, user) => {
-        if (!err && user) {
-          next(
-            new BadRequestResponse(
-              "User already registered with following email.",
-              422.0
-            )
-          );
+      newUser.email = req.body.email.toLowerCase();
+      newUser.fullname = req.body.fullname;
+      newUser.setPassword(req.body.password);
+      newUser.generateOTP();
+      newUser.save().then((result) => {
+        if (!result) {
+          next(new InternalServerErrorResponse("Error saving user", 500.0));
         } else {
-          newUser.email = req.body.email.toLowerCase();
-          newUser.fullname = req.body.fullname;
-          newUser.setPassword(req.body.password);
-          newUser.generateOTP();
-          newUser.save().then((result) => {
-            if (!result) {
-              next(new InternalServerErrorResponse("Error saving user", 500.0));
-            } else {
-              next(new OkResponse(result, "Data saved successfully!", 200));
-            }
-          });
+          next(new OkResponse(result, "Data saved successfully!", 200));
         }
       });
     } catch (err) {
@@ -54,6 +50,8 @@ router.post(
 
 router.post(
   "/login",
+  loginValidation,
+  validate,
   passport.authenticate("local", { session: false }),
   (req, res, next) => {
     User.findOne({ email: req.user.email }, (err, data) => {
@@ -78,65 +76,65 @@ router.post(
   }
 );
 
-router.post("/createAdmin", auth.isToken, auth.isAdmin, (req, res, next) => {
-  try {
-    let newUser = new User();
-    User.findOne({ email: req.body.email }, (err, user) => {
-      if (!err && user) {
-        next(
-          new BadRequestResponse(
-            "User already registered with following email.",
-            422.0
-          )
-        );
-      } else {
-        newUser.email = req.body.email.toLowerCase();
-        newUser.fullname = req.body.fullname;
-        newUser.setPassword(req.body.password);
-        newUser.generateOTP();
-        newUser.role = 1;
-        newUser.save().then((result) => {
-          if (!result) {
-            next(new InternalServerErrorResponse("Error saving user", 500.0));
-          } else {
-            next(
-              new OkResponse(
-                result.toAuthJSON(),
-                "Data saved successfully!",
-                200
-              )
-            );
-          }
-        });
-      }
-    });
-  } catch (err) {
-    next(new BadRequestResponse(err));
-  }
-});
-
-router.post("/verifyEmail", (req, res, next) => {
-  User.findOne({ email: req.body.email }, (err, user) => {
-    if (!err && user) {
-      if (
-        user.otp === req.body.otp &&
-        user.otp_expires.getTime() > Date.now()
-      ) {
-        user.otp = null;
-        user.otp_expires = null;
-        user.isEmailVerified = true;
-        user.save();
-        next(new OkResponse("Email is verified"));
-      } else {
-        next(new BadRequestResponse("Invalid OTP"));
-      }
-    } else {
+router.post(
+  "/createAdmin",
+  registerValidation,
+  validate,
+  auth.isToken,
+  auth.isAdmin,
+  auth.isEmail,
+  auth.isSame,
+  (req, res, next) => {
+    try {
+      let newUser = new User();
+      newUser.email = req.body.email.toLowerCase();
+      newUser.fullname = req.body.fullname;
+      newUser.setPassword(req.body.password);
+      newUser.generateOTP();
+      newUser.role = 1;
+      newUser.save().then((result) => {
+        if (!result) {
+          next(new InternalServerErrorResponse("Error saving user", 500.0));
+        } else {
+          next(
+            new OkResponse(result.toAuthJSON(), "Data saved successfully!", 200)
+          );
+        }
+      });
+    } catch (err) {
       next(new BadRequestResponse(err));
     }
-  });
-});
+  }
+);
 
-router.put("/deleteUser", (req, res, next) => {
+router.post(
+  "/verifyEmail",
+  emailValidation,
+  otpValidation,
+  validate,
+  (req, res, next) => {
+    User.findOne({ email: req.body.email }, (err, user) => {
+      if (!err && user) {
+        if (
+          user.otp === req.body.otp &&
+          user.otp_expires.getTime() > Date.now()
+        ) {
+          user.otp = null;
+          user.otp_expires = null;
+          user.isEmailVerified = true;
+          user.save();
+          next(new OkResponse("Email is verified"));
+        } else {
+          next(new BadRequestResponse("Invalid OTP"));
+        }
+      } else {
+        next(new BadRequestResponse(err));
+      }
+    });
+  }
+);
+
+router.put("/deleteUser", emailValidation, validate,auth.isToken,auth.isAdmin, (req, res, next) => {
   User.findOne({ email: req.body.email }, (err, user) => {
     if (!err && user) {
       (user.status = "deleted"), user.save();
@@ -147,17 +145,25 @@ router.put("/deleteUser", (req, res, next) => {
   });
 });
 
-router.put("/changeStatus", auth.isToken, auth.isAdmin, (req, res, next) => {
-  User.findOne({ email: req.body.email }, (err, user) => {
-    if (!err && user) {
-      user.status = req.body.status;
-      user.save();
-      next(new OkResponse("Status has been updated"));
-    } else {
-      next(new BadRequestResponse("User not found"));
-    }
-  });
-});
+router.put(
+  "/changeStatus",
+  emailValidation,
+  statusValidation,
+  validate,
+  auth.isToken,
+  auth.isAdmin,
+  (req, res, next) => {
+    User.findOne({ email: req.body.email }, (err, user) => {
+      if (!err && user) {
+        user.status = req.body.status;
+        user.save();
+        next(new OkResponse("Status has been updated"));
+      } else {
+        next(new BadRequestResponse("User not found"));
+      }
+    });
+  }
+);
 
 router.get("/showAll", auth.isToken, auth.isAdmin, (req, res, next) => {
   User.find()

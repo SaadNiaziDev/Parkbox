@@ -5,6 +5,7 @@ let httpResponse = require("express-http-response");
 
 dotenv.config({ path: "./config/config.env" });
 const app = express();
+app.use(express.static("./public"));
 
 const authRoute = require("./routes");
 

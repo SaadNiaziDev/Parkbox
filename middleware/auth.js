@@ -5,7 +5,6 @@ const {
   UnauthorizedResponse,
   BadRequestResponse,
 } = require("express-http-response");
-const { validationResult } = require("express-validator");
 
 const isToken = function (req, res, next) {
   var token = req.headers.authorization.split(" ");
