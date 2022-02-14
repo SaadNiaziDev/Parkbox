@@ -17,6 +17,6 @@ const PropertySchema = mongoose.Schema({
     isInsulated:{type:"Boolean",default:"false"},
     isSeperateEnterance:{type:"Boolean",default:"false"},
     isElectricity:{type:"Boolean",default:"false"}
-})
+},{timestamps:true})
 PropertySchema.plugin(paginate);
 module.exports = mongoose.model("Properties",PropertySchema);

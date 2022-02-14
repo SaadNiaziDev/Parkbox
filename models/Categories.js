@@ -14,7 +14,7 @@ const CategorySchema = mongoose.Schema({
     isSeperateEnterance:{type:"Boolean",default:"false"},
     isSecurityDeposit:{type:"Boolean",default:"false"},
     isPrepaidRent:{type:"Boolean",default:"false"},
-})
+},{timestamps:true})
 CategorySchema.plugin(paginate);
 
 module.exports = mongoose.model("Categories",CategorySchema);

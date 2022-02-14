@@ -24,8 +24,8 @@ const UserSchema = mongoose.Schema({
     ], 
     required: true, 
     default: 0 
-  },
-});
+  }},{timestamps:true},
+);
 
 UserSchema.plugin(paginate);
 
