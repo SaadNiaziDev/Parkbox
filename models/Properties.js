@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Categories = require('./Categories');
+const paginate = require("mongoose-paginate-v2");
 const User = require('./User');
 const Schema = mongoose.Schema();
 
@@ -17,5 +18,5 @@ const PropertySchema = mongoose.Schema({
     isSeperateEnterance:{type:"Boolean",default:"false"},
     isElectricity:{type:"Boolean",default:"false"}
 })
-
+PropertySchema.plugin(paginate);
 module.exports = mongoose.model("Properties",PropertySchema);

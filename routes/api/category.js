@@ -106,11 +106,20 @@ router.delete(
   }
 );
 router.get("/showAll", auth.isToken, (req, res, next) => {
-  Categories.find({}, { name: 1, _id: 0 })
-    .populate()
-    .then((data) => {
-      next(new OkResponse(data));
-    });
+  const options = {
+    page: req.query.page || 1,
+    limit: req.query.limit ||2,
+  };
+
+
+
+  Category.paginate({}, options, (err, results) => {
+    if (!err && results) {
+      next(new OkResponse(results));
+    } else {
+      next(new BadRequestResponse("Failed to paginate results"));
+    }
+  });
 });
 
 module.exports = router;

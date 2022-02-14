@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const Properties = require("../../models/Properties");
 const Categories = require("../../models/Categories");
+const paginate = require("mongoose-paginate-v2");
 const { propertyValidation, validate } = require("../../validation/properties");
 const auth = require("../../middleware/auth");
 const {
@@ -80,27 +81,39 @@ router.put("/update/:propertyId", auth.isToken, (req, res, next) => {
   });
 });
 
-router.delete("/delete",auth.isToken,auth.isAdmin, (req, res, next) => {
+router.delete("/delete", auth.isToken, auth.isAdmin, (req, res, next) => {
   Properties.findById({ _id: req.query.id }, (err, data) => {
     if (!err && data) {
       data.remove();
       next(new OkResponse("Data has been removed successfully"));
     } else {
-      next(new BadRequestResponse("UnExpected error occurred while processing request"));
+      next(
+        new BadRequestResponse(
+          "UnExpected error occurred while processing request"
+        )
+      );
     }
   });
 });
 
-router.get("/showAll",auth.isToken, (req, res, next) => {       //  filtering data on bases of price and category using query/params
-  Properties.find() 
-    .populate("category user")
-    .then((err, data) => {
-      if (err) {
-        next(err);
-      } else {
-        next(new OkResponse(data));
-      }
-    });
+router.get("/showAll", auth.isToken, (req, res, next) => {
+  const options = {
+    page: req.query.page || 1,
+    limit: req.query.limit ||2,
+    populate: {
+      path: "category user",
+    },
+  };
+
+
+
+  Properties.paginate({}, options, (err, results) => {
+    if (!err && results) {
+      next(new OkResponse(results));
+    } else {
+      next(new BadRequestResponse("Failed to paginate results"));
+    }
+  });
 });
 
 module.exports = router;

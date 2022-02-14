@@ -166,15 +166,20 @@ router.put(
 );
 
 router.get("/showAll", auth.isToken, auth.isAdmin, (req, res, next) => {
-  User.find()
-    .populate()
-    .then((err, data) => {
-      if (err) {
-        next(err);
-      } else {
-        next(new OkResponse(data));
-      }
-    });
+  const options = {
+    page: req.query.page || 1,
+    limit: req.query.limit ||2,
+  };
+
+
+
+  User.paginate({}, options, (err, results) => {
+    if (!err && results) {
+      next(new OkResponse(results));
+    } else {
+      next(new BadRequestResponse("Failed to paginate results"));
+    }
+  });
 });
 
 module.exports = router;

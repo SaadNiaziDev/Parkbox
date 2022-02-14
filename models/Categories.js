@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const paginate = require("mongoose-paginate-v2");
 const Schema = mongoose.Schema();
 
 const CategorySchema = mongoose.Schema({
@@ -14,5 +15,6 @@ const CategorySchema = mongoose.Schema({
     isSecurityDeposit:{type:"Boolean",default:"false"},
     isPrepaidRent:{type:"Boolean",default:"false"},
 })
+CategorySchema.plugin(paginate);
 
 module.exports = mongoose.model("Categories",CategorySchema);

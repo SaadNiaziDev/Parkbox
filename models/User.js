@@ -3,6 +3,8 @@ const faker = require("faker");
 const Schema = mongoose.Schema();
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
+const paginate = require("mongoose-paginate-v2");
+
 
 const UserSchema = mongoose.Schema({
   email: { type: "string", lowercase: true, required: true },
@@ -24,6 +26,8 @@ const UserSchema = mongoose.Schema({
     default: 0 
   },
 });
+
+UserSchema.plugin(paginate);
 
 UserSchema.methods.validPassword = function (password) {
   var hash = crypto
