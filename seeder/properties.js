@@ -12,8 +12,9 @@ const seedProperty = async () => {
     properties.user = index[i||0]._id;
     properties.category = cate[i%4]._id;
     properties.price = `${faker.datatype.number()} Rs`;
-    properties.address = faker.address.streetAddress();
-    properties.description = faker.name.findName();
+    properties.image.push(faker.image.image('','',true)); //  can use loop here incase to push more than one picture
+    properties.address = faker.address.streetAddress(true);
+    properties.description = faker.lorem.paragraph();
     properties.beds = `${faker.datatype.number({
       min: 0,
       max: 10,
