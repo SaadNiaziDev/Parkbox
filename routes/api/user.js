@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const User = require("../../models/User");
+const {sendEmailVerificationOTP}= require("../../services/emailService");
 const passport = require("passport");
 const localStrategy = require("../../middleware/passport"); // importing strategy file
 const {
@@ -38,6 +39,8 @@ router.post(
         if (!result) {
           next(new InternalServerErrorResponse("Error saving user", 500.0));
         } else {
+          console.log(result);
+          sendEmailVerificationOTP(result);
           next(new OkResponse(result, "Data saved successfully!", 200));
         }
       });

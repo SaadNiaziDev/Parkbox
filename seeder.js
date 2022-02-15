@@ -14,10 +14,14 @@ mongoose.connect('mongodb://localhost:27017/parkbox').catch(err => {
     });;
 
     const seedUser = require('./seeder/user');
-    const seedProperty = require('./seeder/properties')
+    const seedCategory = require('./seeder/categories');
+    const seedProperty = require('./seeder/properties');
 
 async function init(){
+    console.log("dropping DB");
+	await mongoose.connection.db.dropDatabase();
     await seedUser(); 
+    await seedCategory();
     await seedProperty();
     exit();
 }
