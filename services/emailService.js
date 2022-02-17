@@ -45,7 +45,7 @@ const sendEmailVerificationOTP = async (user) => {
       ...user,
       emailText: `<p>Please verify that your email address is ${user.email} and that you entered it when signing up for PARKBOX.</p>
        <p>Enter this OTP to complete the Signup.</p>
-       <p>${user.otp}</p>`,
+       <p><b>${user.otp}</b></p>`,
     },
   });
 };
