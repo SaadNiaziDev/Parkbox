@@ -15,7 +15,7 @@ const seedProperty = async () => {
     let properties = Properties();
     properties.user = index[i||0]._id;
     properties.category = cate[i%4]._id;
-    properties.price = `${faker.datatype.number()} Rs`;
+    properties.price = `${1000*Math.ceil(faker.datatype.number()/1000)} Rs`;
     for(chr;chr<=5;chr++){
     properties.image.push(faker.image.image('','',true));} //  can use loop here incase to push more than one picture
     properties.address = faker.address.streetAddress(true);
