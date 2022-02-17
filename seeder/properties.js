@@ -8,7 +8,7 @@ const seedProperty = async () => {
   var index = await User.find({});
   var cate = await Category.find({});
   for (var i = 0; i < 50; i++) {
-    let chr = faker.datatype.number({
+    let chr = faker.datatype.number({ // to create random number of images to push in array
       min: 1,
       max:5
     });
