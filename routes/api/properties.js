@@ -9,10 +9,12 @@ const {
   BadRequestResponse,
   InternalServerErrorResponse,
 } = require("express-http-response");
+const User = require("../../models/User");
 
 router.post(
   "/add",
   auth.isToken,
+  auth.limit,
   propertyValidation,
   validate,
   (req, res, next) => {
@@ -31,6 +33,11 @@ router.post(
         property.isElectricity = req.body.isElectricity;
         property.isSeperateEnterance = req.body.isSeperateEnterance;
         property.user = req.user.id;
+        User.findOne({_id:req.user.id}, (err,user) => {
+          console.log(user);
+          user.package.no_of_posts= user.package.no_of_posts + 1;
+          user.save();
+        });
         property.save();
         next(new OkResponse(property));
       });

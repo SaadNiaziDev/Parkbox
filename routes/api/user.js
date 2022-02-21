@@ -137,7 +137,7 @@ router.post(
   }
 );
 
-router.put("/deleteUser", emailValidation, validate,auth.isToken,auth.isAdmin, (req, res, next) => {
+router.put("/deleteUser", emailValidation, validate,auth.isToken,auth.isAdmin, (req, res, next) => {      //www.example.com/api/user/deleteUser
   User.findOne({ email: req.body.email }, (err, user) => {
     if (!err && user) {
       (user.status = "deleted"), user.save();
@@ -186,3 +186,5 @@ router.get("/showAll", auth.isToken, auth.isAdmin, (req, res, next) => {
 });
 
 module.exports = router;
+
+

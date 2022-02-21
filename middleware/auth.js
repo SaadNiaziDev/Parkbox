@@ -55,4 +55,12 @@ const isAdmin = function (req, res, next) {
     } else next(new BadRequestResponse("You dont have permission to access"));
   });
 };
-module.exports = { isToken, isEmail, isSame, isAdmin };
+
+const limit = function (req, res, next) {
+  User.findOne({ email: req.user.email }, (err, data) => {
+    if (data.package.no_of_posts < 5) {
+      next();
+    } else next(new BadRequestResponse("Your package limit exceeded"));
+  });
+};
+module.exports = { isToken, isEmail, isSame, isAdmin ,limit};

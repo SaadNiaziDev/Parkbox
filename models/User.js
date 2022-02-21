@@ -14,13 +14,17 @@ const UserSchema = mongoose.Schema(
       required: true,
       default: "active",
     },
-    fullname: String,
-    salt: String,
-    hash: String,
-    image: String,
-    otp: String,
-    otp_expires: Date,
+    fullname: { type: "String" },
+    salt: { type: "String" },
+    hash: { type: "String" },
+    image: { type: "String" },
+    otp: { type: "String" },
+    otp_expires: { type: "Date" },
     isEmailVerified: { type: "Boolean", default: "false" },
+    package: {
+      name: { type: "string", lowercase: true},
+      no_of_posts: { type: "Number", default: "0" },
+    },
     role: {
       type: Number,
       enum: [
