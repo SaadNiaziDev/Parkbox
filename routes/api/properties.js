@@ -33,6 +33,7 @@ router.post(
         property.isElectricity = req.body.isElectricity;
         property.isSeperateEnterance = req.body.isSeperateEnterance;
         property.user = req.user.id;
+        property.expiryDate = (Date.now() + 300000);      //5 minutes -test case//
         User.findOne({_id:req.user.id}, (err,user) => {
           console.log(user);
           user.package.no_of_posts= user.package.no_of_posts + 1;

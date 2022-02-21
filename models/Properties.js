@@ -16,7 +16,9 @@ const PropertySchema = mongoose.Schema({
     area:{type:"String",default:"0x0"},
     isInsulated:{type:"Boolean",default:"false"},
     isSeperateEnterance:{type:"Boolean",default:"false"},
-    isElectricity:{type:"Boolean",default:"false"}
+    isElectricity:{type:"Boolean",default:"false"},
+    //////////////////////////////// expiry date////////////////////////////////
+    expiryDate:{type:"Date",default:null},
 },{timestamps:true})
 PropertySchema.plugin(paginate);
 module.exports = mongoose.model("Properties",PropertySchema);

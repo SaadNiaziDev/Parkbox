@@ -35,6 +35,9 @@ const seedProperty = async () => {
     properties.isSeperateEnterance = faker.datatype.boolean();
     properties.isInsulated = faker.datatype.boolean();
     properties.isElectricity = faker.datatype.boolean();
+    properties.expiryDate = (Date.now() + faker.datatype.number({
+      min:60000,
+      max:300000}));
     await properties.save();
   }
   console.log("properties seeded!");

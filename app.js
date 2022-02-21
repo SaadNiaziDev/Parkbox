@@ -2,6 +2,7 @@ const express = require("express");
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 let httpResponse = require("express-http-response");
+const cronJob = require("./crons/property-cron");
 
 dotenv.config({ path: "./config/config.env" });
 const app = express();
@@ -22,7 +23,6 @@ require("./models/Categories");
 require("./models/Properties");
 
 
-
 //middleware
 app.use(express.json());
 
@@ -33,4 +33,5 @@ app.use(httpResponse.Middleware)
 
 app.listen(process.env.PORT, () => {
   console.log("listening on port " + process.env.PORT);
+  cronJob();
 });
