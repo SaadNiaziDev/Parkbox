@@ -1,10 +1,9 @@
 const cron = require("node-cron");
-const User = require("../models/User");
 const Properties = require("../models/Properties");
 
 const cronJob = async () => {
-  cron.schedule("0 */2 * * * *", async () => {
-    console.log("CRON RUNNING AFTER 2 MINUTES!");
+  cron.schedule("0 0 * * * *", async () => {
+    console.log("CRON RUNNING AFTER 1 Hour!");
     var d = new Date(Date.now());
 
     let query = {

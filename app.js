@@ -18,6 +18,8 @@ mongoose.connect(
   }
 );
 
+mongoose.set('debug', true);
+
 require("./models/User");
 require("./models/Categories");
 require("./models/Properties");

@@ -33,10 +33,10 @@ router.post(
         property.isElectricity = req.body.isElectricity;
         property.isSeperateEnterance = req.body.isSeperateEnterance;
         property.user = req.user.id;
-        property.expiryDate = (Date.now() + 300000);      //5 minutes -test case//
-        User.findOne({_id:req.user.id}, (err,user) => {
+        property.expiryDate = Date.now() + 300000; //5 minutes -test case//
+        User.findOne({ _id: req.user.id }, (err, user) => {
           console.log(user);
-          user.package.no_of_posts= user.package.no_of_posts + 1;
+          user.package.no_of_posts = user.package.no_of_posts + 1;
           user.save();
         });
         property.save();
@@ -107,13 +107,11 @@ router.delete("/delete", auth.isToken, auth.isAdmin, (req, res, next) => {
 router.get("/showAll", auth.isToken, (req, res, next) => {
   const options = {
     page: req.query.page || 1,
-    limit: req.query.limit ||2,
+    limit: req.query.limit || 2,
     populate: {
       path: "category user",
     },
   };
-
-
 
   Properties.paginate({}, options, (err, results) => {
     if (!err && results) {
@@ -123,5 +121,30 @@ router.get("/showAll", auth.isToken, (req, res, next) => {
     }
   });
 });
+
+router.get("/showProperties/", async (req, res, next) => {
+  var show = [];
+  var result = await Categories.find({});
+  for (var i = 0; i < result.length; i++) {
+    let p = await Properties.find({ category:result[i]._id});
+    const sliced = Object.fromEntries(      //this code is slicing the object to give 10 results only for each category
+      Object.entries(p).slice(0, 10)
+    )
+    show.push(sliced);
+  }
+  next(new OkResponse(show));
+});
+
+
+router.get("/showCategory/:id", async(req, res, next)=>{
+  Properties.find({ 'category':req.params.id}, (err, data)=>{
+    if(!err && data){
+      next(new OkResponse(data));
+    }else{
+      next(new BadRequestResponse(err));
+    }
+  })
+})
+
 
 module.exports = router;

@@ -38,6 +38,7 @@ const seedProperty = async () => {
     properties.expiryDate = (Date.now() + faker.datatype.number({
       min:60000,
       max:300000}));
+    properties
     await properties.save();
   }
   console.log("properties seeded!");
