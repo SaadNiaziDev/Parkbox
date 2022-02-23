@@ -137,7 +137,7 @@ router.get("/showAll",auth.isToken, async(req, res, next) => { //category //user
     const users = await User.find(req.query.user);
     query.user = users;
   }else{
-    query.user = req.user.id;
+    //query.user = req.user.id;
   }
   if (typeof req.query.minPrice !== "undefined" && req.query.minPrice !== null && req.query.minPrice && typeof req.query.maxPrice !== "undefined" && req.query.maxPrice !== null && req.query.maxPrice) {
     query.price = {
@@ -145,6 +145,30 @@ router.get("/showAll",auth.isToken, async(req, res, next) => { //category //user
       $lte: req.query.maxPrice
     }
   }
+  if(typeof req.query.latitude !== 'undefined'&& req.query.latitude !== null && req.query.latitude && typeof req.query.longitude !== 'undefined'&& req.query.longitude !== null && req.query.longitude){
+    const longitude=parseFloat(req.query.longitude);
+    const latitude=parseFloat(req.query.latitude);
+    loc = {
+      $near: {
+        $geometry: {
+          type: "Point",
+          coordinates: [longitude, latitude],
+        },
+        $maxDistance: 100000, // searching within km's
+        $minDistance: 0,
+        $spherical: true,
+        
+      }
+      // $near: {
+      //   $geometry: { type: 'Point', coordinates: [65,33] },
+      //   $maxDistance: 1000*(req.query.distance?parseInt(req.query.distance):1),
+      //   $minDistance:1,
+      // },
+    };
+
+  if(loc){
+    query.location =loc
+  }}
   console.log(query);
   Properties.paginate(query, options, (err, results) => {
     if (err) {
@@ -194,7 +218,7 @@ router.get("/showNearby/:longitude/:latitude", (req, res, next) => {
           type: "Point",
           coordinates: [req.params.longitude, req.params.latitude],
         },
-        $maxDistance: 1000 * distance, // searching within 100km
+        $maxDistance: 1000 * distance, // searching within km's
         $minDistance: 0,
       },
     },
