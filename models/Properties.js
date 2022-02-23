@@ -5,9 +5,16 @@ const paginate = require("mongoose-paginate-v2");
 const User = require("./User");
 const Schema = mongoose.Schema();
 
-const geoLocation = mongoose.Schema({
-  type: { type: "String", default: "Point" },
-  coordinate: [{ type: "Number" }],
+const pointSchema = new mongoose.Schema({
+  type: {
+    type: String,
+    enum: ['Point'],
+    required: true,
+  },
+  coordinates: {
+    type: [Number],
+    required: true,
+  },
 });
 
 const PropertySchema = mongoose.Schema(
@@ -17,6 +24,7 @@ const PropertySchema = mongoose.Schema(
     price: { type: "String", default: "0" },
     image: [{ type: "String" }],
     address: { type: "String", default: "Street xyz" },
+    zipcode: { type: "String",default: "30000"},
     description: { type: "String", default: "Street,City,Province" },
     beds: { type: "String", default: "0" },
     baths: { type: "String", default: "0" },
@@ -27,9 +35,9 @@ const PropertySchema = mongoose.Schema(
     //////////////////////////////// expiry date////////////////////////////////
     expiryDate: { type: "Date", default: null },
     location: {
-      type: geoLocation,
+      type: pointSchema,
       index: "2dsphere",
-      coordinate: [{ type: "Number", default: "0" }],
+      coordinates: { type: [Number], default: [0,0] },
     },
   },
   { timestamps: true }

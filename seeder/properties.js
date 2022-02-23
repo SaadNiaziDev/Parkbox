@@ -12,6 +12,8 @@ const seedProperty = async () => {
       min: 1,
       max:5
     });
+    var latitude = faker.address.latitude(30,40);
+    var longitude = faker.address.longitude(60,70);
     let properties = Properties();
     properties.user = index[i||0]._id;
     properties.category = cate[i%4]._id;
@@ -35,10 +37,14 @@ const seedProperty = async () => {
     properties.isSeperateEnterance = faker.datatype.boolean();
     properties.isInsulated = faker.datatype.boolean();
     properties.isElectricity = faker.datatype.boolean();
+    properties.zipcode = faker.address.zipCode('#####');
     properties.expiryDate = (Date.now() + faker.datatype.number({
       min:60000,
-      max:300000}));
-    properties
+      max:300000}))
+    properties.location={
+      type:'Point',
+      coordinates:[longitude,latitude],
+    };
     await properties.save();
   }
   console.log("properties seeded!");

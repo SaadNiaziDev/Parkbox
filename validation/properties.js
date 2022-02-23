@@ -5,6 +5,7 @@ const propertyValidation=[
     check("category").not().isEmpty(),
     check("price").not().isEmpty(),
     check("address").not().isEmpty(),
+    check("zipcode").not().isEmpty(),
     check("description").not().isEmpty(),
     check("beds").not().isEmpty(),
     check("baths").not().isEmpty(),
@@ -12,6 +13,7 @@ const propertyValidation=[
     check("isElectricity").not().isEmpty(),
     check("isSeperateEnterance").not().isEmpty(),
     check("isInsulated").not().isEmpty(),
+    check("location").not().isEmpty(),
 ]
 
 const validate = function (req, res, next) {

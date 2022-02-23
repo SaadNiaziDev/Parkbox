@@ -2,7 +2,10 @@ const router = require("express").Router();
 const Properties = require("../../models/Properties");
 const Categories = require("../../models/Categories");
 const paginate = require("mongoose-paginate-v2");
-const { propertyValidation, validate } = require("../../validation/properties");
+const {
+  propertyValidation,
+  validate
+} = require("../../validation/properties");
 const auth = require("../../middleware/auth");
 const {
   OkResponse,
@@ -20,7 +23,9 @@ router.post(
   (req, res, next) => {
     let property = new Properties();
     try {
-      Categories.findOne({ category: req.body.category }, (err, data) => {
+      Categories.findOne({
+        category: req.body.category
+      }, (err, data) => {
         property.category = data._id;
         property.price = req.body.price;
         property.image = req.body.image;
@@ -32,9 +37,12 @@ router.post(
         property.isInsulated = req.body.isInsulated;
         property.isElectricity = req.body.isElectricity;
         property.isSeperateEnterance = req.body.isSeperateEnterance;
-        property.user = req.user.id;
+        property.user = req.user.id; ///////////////////////////////////
+        property.location = req.body.location;
         property.expiryDate = Date.now() + 300000; //5 minutes -test case//
-        User.findOne({ _id: req.user.id }, (err, user) => {
+        User.findOne({
+          _id: req.user.id
+        }, (err, user) => {
           console.log(user);
           user.package.no_of_posts = user.package.no_of_posts + 1;
           user.save();
@@ -49,7 +57,9 @@ router.post(
 );
 
 router.put("/update/:propertyId", auth.isToken, (req, res, next) => {
-  Properties.findById({ _id: req.params.propertyId }, (err, data) => {
+  Properties.findById({
+    _id: req.params.propertyId
+  }, (err, data) => {
     if (!err && data) {
       if (req.body.price) {
         data.price = req.body.price;
@@ -90,7 +100,9 @@ router.put("/update/:propertyId", auth.isToken, (req, res, next) => {
 });
 
 router.delete("/delete", auth.isToken, auth.isAdmin, (req, res, next) => {
-  Properties.findById({ _id: req.query.id }, (err, data) => {
+  Properties.findById({
+    _id: req.query.id
+  }, (err, data) => {
     if (!err && data) {
       data.remove();
       next(new OkResponse("Data has been removed successfully"));
@@ -104,7 +116,7 @@ router.delete("/delete", auth.isToken, auth.isAdmin, (req, res, next) => {
   });
 });
 
-router.get("/showAll", auth.isToken, (req, res, next) => {
+router.get("/showAll",auth.isToken, async(req, res, next) => { //category //user //zipcode //price range 
   const options = {
     page: req.query.page || 1,
     limit: req.query.limit || 2,
@@ -112,12 +124,34 @@ router.get("/showAll", auth.isToken, (req, res, next) => {
       path: "category user",
     },
   };
-
-  Properties.paginate({}, options, (err, results) => {
-    if (!err && results) {
-      next(new OkResponse(results));
+  console.log(req.user);
+  var query={};
+  const categories = await Categories.find({name:req.query.category}).select('_id').exec();
+  if (typeof req.query.category !== "undefined" && req.query.category !== null && req.query.category && req.query.category.length != 0) {
+    query.category = {$in:categories};
+  }
+  if (typeof req.query.zipcode !== "undefined" && req.query.zipcode !== null && req.query.zipcode) {
+    query.zipcode = req.query.zipcode;
+  }
+  if (typeof req.query.user !== "undefined" && req.query.user !== null && req.query.user) {
+    const users = await User.find(req.query.user);
+    query.user = users;
+  }else{
+    query.user = req.user.id;
+  }
+  if (typeof req.query.minPrice !== "undefined" && req.query.minPrice !== null && req.query.minPrice && typeof req.query.maxPrice !== "undefined" && req.query.maxPrice !== null && req.query.maxPrice) {
+    query.price = {
+      $gte: req.query.minPrice,
+      $lte: req.query.maxPrice
+    }
+  }
+  console.log(query);
+  Properties.paginate(query, options, (err, results) => {
+    if (err) {
+      console.log(err);
+      next(new BadRequestResponse(err));
     } else {
-      next(new BadRequestResponse("Failed to paginate results"));
+      next(new OkResponse({ result: results }));
     }
   });
 });
@@ -126,25 +160,53 @@ router.get("/showProperties/", async (req, res, next) => {
   var show = [];
   var result = await Categories.find({});
   for (var i = 0; i < result.length; i++) {
-    let p = await Properties.find({ category:result[i]._id});
-    const sliced = Object.fromEntries(      //this code is slicing the object to give 10 results only for each category
+    let p = await Properties.find({
+      category: result[i]._id
+    });
+    const sliced = Object.fromEntries(
+      //this code is slicing the object to give 10 results only for each category
       Object.entries(p).slice(0, 10)
-    )
+    );
     show.push(sliced);
   }
   next(new OkResponse(show));
 });
 
-
-router.get("/showCategory/:id", async(req, res, next)=>{
-  Properties.find({ 'category':req.params.id}, (err, data)=>{
-    if(!err && data){
+router.get("/category/:id", async (req, res, next) => {
+  Properties.find({
+    category: req.params.id
+  }, (err, data) => {
+    if (!err && data) {
       next(new OkResponse(data));
-    }else{
+    } else {
       next(new BadRequestResponse(err));
     }
-  })
-})
+  });
+});
 
+router.get("/showNearby/:longitude/:latitude", (req, res, next) => {
+  var distance = parseFloat(req.query.distance); //in kilometers
+  console.log(distance);
+  Properties.find({
+    location: {
+      $near: {
+        $geometry: {
+          type: "Point",
+          coordinates: [req.params.longitude, req.params.latitude],
+        },
+        $maxDistance: 1000 * distance, // searching within 100km
+        $minDistance: 0,
+      },
+    },
+  }, (err, data) => {
+    if (!err && data) {
+      console.log("Properties shown");
+      next(new OkResponse(data));
+    } else {
+      console.log("Error occurred");
+      next(new BadRequestResponse("Sorry, could not find properties"))
+    }
+  });
+});
 
 module.exports = router;
