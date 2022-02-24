@@ -47,6 +47,8 @@ router.post(
           user.package.no_of_posts = user.package.no_of_posts + 1;
           user.save();
         });
+
+        TODO //Booster have to be added 
         property.save();
         next(new OkResponse(property));
       });
@@ -56,6 +58,8 @@ router.post(
   }
 );
 
+
+TODO //need to configure api incase of booster update
 router.put("/update/:propertyId", auth.isToken, (req, res, next) => {
   Properties.findById({
     _id: req.params.propertyId
