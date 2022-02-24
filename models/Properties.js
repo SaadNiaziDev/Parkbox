@@ -39,6 +39,11 @@ const PropertySchema = mongoose.Schema(
       index: "2dsphere",
       coordinates: { type: [Number], default: [0,0] },
     },
+    boost: {
+      duration: { type:"String", default:"null"},
+      expires: { type:"Date", default:"" },
+      price: { type:"String", default: "null" }
+    },
   },
   { timestamps: true }
 );

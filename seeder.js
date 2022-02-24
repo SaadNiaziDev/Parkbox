@@ -2,8 +2,9 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 
 require('./models/User');
-require('./models/Categories')
-require('./models/Properties')
+require('./models/Categories');
+require('./models/Properties');
+require('./models/Boost');
 mongoose.connect('mongodb://localhost:27017/parkbox').catch(err => {
         console.log(err.stack);
         process.exit(1);
@@ -16,11 +17,13 @@ mongoose.connect('mongodb://localhost:27017/parkbox').catch(err => {
     const seedUser = require('./seeder/user');
     const seedCategory = require('./seeder/categories');
     const seedProperty = require('./seeder/properties');
+    const seedBoosts= require('./seeder/boost');
 
 async function init(){
     console.log("dropping DB");
 	await mongoose.connection.db.dropDatabase();
     await seedUser(); 
+    await seedBoosts();
     await seedCategory();
     await seedProperty();
     exit();

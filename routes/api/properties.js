@@ -116,7 +116,7 @@ router.delete("/delete", auth.isToken, auth.isAdmin, (req, res, next) => {
   });
 });
 
-router.get("/showAll",auth.isToken, async(req, res, next) => { //category //user //zipcode //price range 
+router.get("/showAll", auth.isToken, async (req, res, next) => { //category //user //zipcode //price range 
   const options = {
     page: req.query.page || 1,
     limit: req.query.limit || 2,
@@ -125,18 +125,24 @@ router.get("/showAll",auth.isToken, async(req, res, next) => { //category //user
     },
   };
   console.log(req.user);
-  var query={};
-  const categories = await Categories.find({name:req.query.category}).select('_id').exec();
+  var query = {};
   if (typeof req.query.category !== "undefined" && req.query.category !== null && req.query.category && req.query.category.length != 0) {
-    query.category = {$in:categories};
+    const categories = await Categories.find({
+      name: req.query.category
+    }).select('_id').exec();
+    query.category = {
+      $in: categories
+    };
   }
   if (typeof req.query.zipcode !== "undefined" && req.query.zipcode !== null && req.query.zipcode) {
     query.zipcode = req.query.zipcode;
   }
   if (typeof req.query.user !== "undefined" && req.query.user !== null && req.query.user) {
-    const users = await User.find(req.query.user);
+    const users = await User.find({
+      _id: req.query.user
+    }).select("_id");
     query.user = users;
-  }else{
+  } else {
     //query.user = req.user.id;
   }
   if (typeof req.query.minPrice !== "undefined" && req.query.minPrice !== null && req.query.minPrice && typeof req.query.maxPrice !== "undefined" && req.query.maxPrice !== null && req.query.maxPrice) {
@@ -145,39 +151,45 @@ router.get("/showAll",auth.isToken, async(req, res, next) => { //category //user
       $lte: req.query.maxPrice
     }
   }
-  if(typeof req.query.latitude !== 'undefined'&& req.query.latitude !== null && req.query.latitude && typeof req.query.longitude !== 'undefined'&& req.query.longitude !== null && req.query.longitude){
-    const longitude=parseFloat(req.query.longitude);
-    const latitude=parseFloat(req.query.latitude);
+  if (typeof req.query.latitude !== 'undefined' && req.query.latitude !== null && req.query.latitude && typeof req.query.longitude !== 'undefined' && req.query.longitude !== null && req.query.longitude) {
+    const longitude = parseFloat(req.query.longitude);
+    const latitude = parseFloat(req.query.latitude);
     loc = {
       $near: {
         $geometry: {
           type: "Point",
           coordinates: [longitude, latitude],
         },
-        $maxDistance: 100000, // searching within km's
+        $maxDistance: 1000 * (req.query.distance ? parseInt(req.query.distance) : 1), // searching within km's
         $minDistance: 0,
-        $spherical: true,
-        
+
       }
-      // $near: {
-      //   $geometry: { type: 'Point', coordinates: [65,33] },
-      //   $maxDistance: 1000*(req.query.distance?parseInt(req.query.distance):1),
-      //   $minDistance:1,
-      // },
     };
 
-  if(loc){
-    query.location =loc
-  }}
-  console.log(query);
-  Properties.paginate(query, options, (err, results) => {
-    if (err) {
-      console.log(err);
-      next(new BadRequestResponse(err));
-    } else {
-      next(new OkResponse({ result: results }));
+    if (loc) {
+      query.location = loc
     }
-  });
+  }
+  Properties.find(query)
+    .limit(options.limit)
+    .skip(options.limit * (options.page - 1))
+    .exec((err, results) => {
+      if (err) {
+        next(new BadRequestResponse("Something went wrong"))
+      }
+      Properties.count(query)
+        .exec((err, docs) => {
+          if (err) {
+            next(new BadRequestResponse("Something unknown Happened"))
+          }
+          next(new OkResponse({
+            total: docs,
+            page: options.page,
+            pageSize: docs.length,
+            data: results
+          }))
+        })
+    })
 });
 
 router.get("/showProperties/", async (req, res, next) => {

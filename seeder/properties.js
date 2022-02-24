@@ -5,6 +5,8 @@ const User = require("../models/User");
 const Category = require("../models/Categories");
 
 const seedProperty = async () => {
+  // var duration = ['7','14','30'];
+  // var price =['1000','5000','10000'];
   var index = await User.find({});
   var cate = await Category.find({});
   for (var i = 0; i < 50; i++) {
@@ -45,6 +47,18 @@ const seedProperty = async () => {
       type:'Point',
       coordinates:[longitude,latitude],
     };
+    // properties.boost.duration=duration[faker.datatype.number({
+    //   min:0,
+    //   max:2,
+    // })],
+    // properties.boost.price=price[faker.datatype.number({
+    //   min:0,
+    //   max:2,
+    // })], 
+    // properties.boost.expires = Date.now() + faker.datatype.number({
+    //   min:60000*30,     //30mints
+    //   max:60000*60,     //60mints
+    // })
     await properties.save();
   }
   console.log("properties seeded!");
