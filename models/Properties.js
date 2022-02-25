@@ -40,9 +40,9 @@ const PropertySchema = mongoose.Schema(
       coordinates: { type: [Number], default: [0,0] },
     },
     boost: {
-      duration: { type:"String", default:"null"},
-      expires: { type:"Date", default:"" },
-      price: { type:"String", default: "null" }
+      duration: { type:"String", default:null},
+      expires: { type:"Date", default:null },
+      price: { type:"String", default: null }
     },
   },
   { timestamps: true }
@@ -56,5 +56,6 @@ var autoPopulate = function (next) {
 PropertySchema.pre("findOne", autoPopulate);
 PropertySchema.pre("find", autoPopulate);
 PropertySchema.pre("findById", autoPopulate);
+
 
 module.exports = mongoose.model("Properties", PropertySchema);

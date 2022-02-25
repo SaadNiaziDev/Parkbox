@@ -13,7 +13,7 @@ const propertyValidation=[
     check("isElectricity").not().isEmpty(),
     check("isSeperateEnterance").not().isEmpty(),
     check("isInsulated").not().isEmpty(),
-    check("location").not().isEmpty(),
+    //check("location").not().isEmpty(),
 ]
 
 const validate = function (req, res, next) {
